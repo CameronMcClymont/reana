@@ -190,6 +190,11 @@ ingress:
     hosts: []
   extra: []
 
+# Optionally, use a separate namespace for user workflow pods (run-batch, run-job, run-session).
+# The namespace, runtime service account, and RBAC bindings are created automatically.
+# For network storage backends (cephfs/nfs), a shared PVC is also created in this namespace.
+namespace_runtime: reana-runtime
+
 # Permissions
 serviceAccount:
   create: true
