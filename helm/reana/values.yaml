@@ -245,6 +245,11 @@ traefik:
 kueue:
   enabled: false
 
+# When enabled, enforces a read-only root filesystem in user workflow pods
+# (reana-run-{batch|job|session}. This prevents writing to paths outside
+# the mounted workspace volume.
+kubernetes_jobs_read_only_root_filesystem: false
+
 dask:
   enabled: false
   autoscaler_enabled: true

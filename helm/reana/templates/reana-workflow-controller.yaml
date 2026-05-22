@@ -196,6 +196,8 @@ spec:
             value: {{ .Values.kubernetes_jobs_timeout_limit | default 604800 | int64 | quote }}  # 604800 seconds = 7 days
           - name: REANA_KUBERNETES_JOBS_MIN_USER_UID
             value: {{ .Values.kubernetes_jobs_min_user_uid | default 100 | int64 | quote }}
+          - name: REANA_KUBERNETES_JOBS_READ_ONLY_ROOT_FILESYSTEM
+            value: {{ .Values.kubernetes_jobs_read_only_root_filesystem | quote }}
           - name: REANA_JOB_CONTROLLER_IMAGE
             value: {{ .Values.components.reana_job_controller.image | quote }}
           - name: REANA_WORKFLOW_ENGINE_IMAGE_CWL
