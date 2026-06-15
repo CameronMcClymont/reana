@@ -246,8 +246,13 @@ kueue:
   enabled: false
 
 # When enabled, enforces a read-only root filesystem in user workflow pods
-# (reana-run-{batch|job|session}. This prevents writing to paths outside
-# the mounted workspace volume.
+# (reana-run-{batch|job|session}) and Dask scheduler/worker pods. Container
+# root and image directories become read-only while the mounted workspace
+# volume stays writable. Standard cache and tmp locations (TMPDIR,
+# XDG_CACHE_HOME, Jupyter state directories) are redirected into the
+# workspace, so software that hardcodes paths like /tmp will fail and needs
+# this option off. Host-path mounts inherit their per-mount readOnly setting
+# (defaulting to read-only when this option is enabled).
 kubernetes_jobs_read_only_root_filesystem: false
 
 dask:
