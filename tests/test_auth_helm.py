@@ -379,8 +379,40 @@ def test_bundled_keycloak_realm_tracks_chart_values_and_uses_secrets():
     reconcile_script = reconciler["spec"]["template"]["spec"]["containers"][0]["args"][
         0
     ]
+    # Reconciliation must not replace existing roles or clients: that would
+    # drop the users' role mappings, sessions and offline tokens.
     assert "create partialImport" in reconcile_script
-    assert "ifResourceExists=OVERWRITE" in reconcile_script
+    assert "ifResourceExists=SKIP" in reconcile_script
+    assert "OVERWRITE" not in reconcile_script
+    assert 'kcadm update "clients/${client}" -f "${representation}"' in (
+        reconcile_script
+    )
+    assert '"clients/${client}/${kind}-client-scopes/${scope_id}"' in (reconcile_script)
+    clients_secret = _rendered_resource(
+        rendered, "Secret", "reana-keycloak-realm-clients"
+    )["stringData"]
+    assert clients_secret["client-0.id"] == "custom-web"
+    assert clients_secret["client-1.id"] == "custom-cli"
+    assert json.loads(clients_secret["client-0.json"]) == web_client
+    assert json.loads(clients_secret["client-1.json"]) == cli_client
+    assert "client-0.default-scopes" not in clients_secret
+    assert "client-0.optional-scopes" not in clients_secret
+    assert clients_secret["client-1.default-scopes"].split("\n") == (
+        cli_client["defaultClientScopes"]
+    )
+    assert clients_secret["client-1.optional-scopes"].split("\n") == (
+        cli_client["optionalClientScopes"]
+    )
+    reconciler_pod = reconciler["spec"]["template"]["spec"]
+    assert {
+        "name": "realm-clients",
+        "secret": {"secretName": "reana-keycloak-realm-clients"},
+    } in reconciler_pod["volumes"]
+    assert {
+        "name": "realm-clients",
+        "mountPath": "/opt/keycloak/data/reconcile",
+        "readOnly": True,
+    } in reconciler_pod["containers"][0]["volumeMounts"]
     assert "get roles/offline_access" in reconcile_script
     assert '"roles/default-roles-${KEYCLOAK_REALM}/composites"' in reconcile_script
     assert "printf '[%s]'" in reconcile_script
